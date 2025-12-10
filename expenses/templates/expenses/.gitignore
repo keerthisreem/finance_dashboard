@@ -1,5 +1,24 @@
-venv/
+# Python / Django
+*.pyc
 __pycache__/
 db.sqlite3
-*.pyc
+*.env
 .env
+# Byte-compiled / caches
+*.egg-info/
+*.egg
+# VS Code
+.vscode/
+# mac/windows
+.DS_Store
+Thumbs.db
+
+# Virtual env
+venv/
+ENV/
+env/
+.venv/
+
+# pipenv / poetry
+Pipfile.lock
+poetry.lock
