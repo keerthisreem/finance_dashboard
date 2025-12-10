@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Transaction</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light p-4">
+<div class="container">
+    <div class="card mx-auto" style="max-width:700px;">
+        <div class="card-body text-center">
+            <h4 class="mb-3">Are you sure you want to delete this transaction?</h4>
+            <p><strong>{{ transaction.type|capfirst }} - {{ transaction.category }} - ₹ {{ transaction.amount|floatformat:2 }}</strong></p>
+
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            </form>
+
+            <a href="{% url 'home' %}" class="btn btn-secondary ms-2">Cancel</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
