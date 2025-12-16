@@ -1,212 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Finance Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Transactions</title>
+
     <style>
-      body { background:#f6f8fb; }
-      .chart-card { min-height: 280px; }
-      .summary-card { border-radius:12px; box-shadow:0 6px 20px rgba(30,30,60,0.06); }
-      .table-card { border-radius:12px; overflow:hidden; box-shadow:0 6px 30px rgba(30,30,60,0.06); }
-      .brand { font-weight:800; font-size:1.25rem; color:#0d6efd; }
-      .filter-row { gap: .75rem; }
-      @media (max-width:767px) {
-        .filter-row { flex-direction:column; }
-      }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        .top-actions {
+            margin-bottom: 15px;
+        }
+
+        .top-actions a {
+            text-decoration: none;
+            padding: 8px 12px;
+            background: #2563eb;
+            color: #fff;
+            border-radius: 6px;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #1f2937;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        .actions a {
+            text-decoration: none;
+            margin-right: 8px;
+            font-size: 13px;
+        }
+
+        .edit {
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+        .delete {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .back-link {
+            margin-top: 15px;
+            display: inline-block;
+        }
     </style>
 </head>
-
 <body>
-  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
-    <div class="container">
-      <a class="navbar-brand brand" href="{% url 'home' %}">Finance Dashboard</a>
-      <div class="ms-auto d-flex align-items-center">
-        <a href="{% url 'add_transaction' %}" class="btn btn-primary">+ Add Transaction</a>
-      </div>
-    </div>
-  </nav>
 
-  <div class="container">
+<h2>Recent Transactions</h2>
 
-    <!-- FILTER PANEL -->
-    <div class="card mb-4 p-3 summary-card">
-      <form method="get" class="row align-items-end filter-row">
-        <div class="col-md-3">
-          <label class="form-label small">Start date</label>
-          <input type="date" name="start_date" class="form-control" value="{{ filter_start_date|default:'' }}">
-        </div>
+<div class="top-actions">
+    <a href="{% url 'add_transaction' %}">+ Add Transaction</a>
+</div>
 
-        <div class="col-md-3">
-          <label class="form-label small">End date</label>
-          <input type="date" name="end_date" class="form-control" value="{{ filter_end_date|default:'' }}">
-        </div>
+<table>
+    <tr>
+        <th>Type</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Note</th>
+        <th>Actions</th>
+    </tr>
 
-        <div class="col-md-3">
-          <label class="form-label small">Category</label>
-          <select name="category" class="form-select">
-            <option value="">All categories</option>
-            {% for c in categories %}
-              <option value="{{ c.id }}" {% if filter_category|stringformat:"s" == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
+    {% for t in transactions %}
+    <tr>
+        <td>{{ t.type|title }}</td>
+        <td>{{ t.category }}</td>
+        <td>₹ {{ t.amount }}</td>
+        <td>{{ t.date }}</td>
+        <td>{{ t.note }}</td>
+        <td class="actions">
+            <a class="edit" href="{% url 'edit_transaction' t.id %}">Edit</a>
+            <a class="delete" href="{% url 'delete_transaction' t.id %}">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 
-        <div class="col-md-2">
-          <label class="form-label small">Type</label>
-          <select name="type" class="form-select">
-            <option value="">All</option>
-            <option value="income" {% if filter_type == 'income' %}selected{% endif %}>Income</option>
-            <option value="expense" {% if filter_type == 'expense' %}selected{% endif %}>Expense</option>
-          </select>
-        </div>
+<a class="back-link" href="{% url 'dashboard' %}">← Back to Dashboard</a>
 
-        <div class="col-md-1 d-grid">
-          <button type="submit" class="btn btn-success">Apply</button>
-          <a href="{% url 'home' %}" class="btn btn-outline-secondary mt-2">Clear</a>
-        </div>
-      </form>
-    </div>
-
-    <!-- Summary Cards -->
-    <div class="row mb-4">
-      <div class="col-md-4 mb-3">
-        <div class="card summary-card">
-          <div class="card-body text-center">
-            <h6 class="text-success fw-bold">Total Income</h6>
-            <p class="fs-4">₹ {{ total_income|default:"0.00"|floatformat:2 }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4 mb-3">
-        <div class="card summary-card">
-          <div class="card-body text-center">
-            <h6 class="text-danger fw-bold">Total Expense</h6>
-            <p class="fs-4">₹ {{ total_expense|default:"0.00"|floatformat:2 }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4 mb-3">
-        <div class="card summary-card">
-          <div class="card-body text-center">
-            <h6 class="text-primary fw-bold">Balance</h6>
-            <p class="fs-4">₹ {{ balance|default:"0.00"|floatformat:2 }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Charts Row -->
-    <div class="row mb-4">
-      <div class="col-md-6 mb-3">
-        <div class="card chart-card">
-          <div class="card-body">
-            <h6 class="card-title">Expense by Category</h6>
-            <canvas id="expenseCategoryChart"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6 mb-3">
-        <div class="card chart-card">
-          <div class="card-body">
-            <h6 class="card-title">Expenses — Last 7 Days</h6>
-            <canvas id="last7DaysChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Transactions Table -->
-    <div class="card table-card mb-5">
-      <div class="card-body p-0">
-        <table class="table mb-0">
-          <thead class="table-dark">
-            <tr>
-              <th>Type</th>
-              <th>Category</th>
-              <th>Amount</th>
-              <th>Date</th>
-              <th>Note</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for t in transactions %}
-            <tr>
-              <td>{{ t.type }}</td>
-              <td>{{ t.category }}</td>
-              <td>₹ {{ t.amount|floatformat:2 }}</td>
-              <td>{{ t.date }}</td>
-              <td>{{ t.note }}</td>
-              <td>
-                <a href="{% url 'edit_transaction' t.pk %}" class="btn btn-sm btn-warning">Edit</a>
-                <a href="{% url 'delete_transaction' t.pk %}" class="btn btn-sm btn-danger ms-2">Delete</a>
-              </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="6" class="text-center p-4">No transactions found for the selected filters.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Hidden element to safely carry JSON payloads (escapejs used in view) -->
-  <div id="chart-data"
-       data-expense-labels="{{ expense_cat_labels_json|escapejs|default:'[]' }}"
-       data-expense-values="{{ expense_cat_values_json|escapejs|default:'[]' }}"
-       data-last7-labels="{{ last7_labels_json|escapejs|default:'[]' }}"
-       data-last7-values="{{ last7_values_json|escapejs|default:'[]' }}"
-       style="display:none;"></div>
-
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    // Safe parsing helper
-    function parseJSONSafe(str) {
-      try {
-        return JSON.parse(str);
-      } catch (e) {
-        return [];
-      }
-    }
-
-    const dataEl = document.getElementById('chart-data');
-
-    const expenseCatLabels = parseJSONSafe(dataEl?.dataset?.expenseLabels || '[]');
-    const expenseCatValues = parseJSONSafe(dataEl?.dataset?.expenseValues || '[]');
-    const last7Labels = parseJSONSafe(dataEl?.dataset?.last7Labels || '[]');
-    const last7Values = parseJSONSafe(dataEl?.dataset?.last7Values || '[]');
-
-    // Expense by Category - Pie Chart
-    const ctx1El = document.getElementById('expenseCategoryChart');
-    if (ctx1El) {
-      const ctx1 = ctx1El.getContext('2d');
-      new Chart(ctx1, {
-        type: 'pie',
-        data: { labels: expenseCatLabels, datasets: [{ data: expenseCatValues, borderWidth: 1 }] },
-        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-      });
-    }
-
-    // Last 7 days - Bar Chart
-    const ctx2El = document.getElementById('last7DaysChart');
-    if (ctx2El) {
-      const ctx2 = ctx2El.getContext('2d');
-      new Chart(ctx2, {
-        type: 'bar',
-        data: {
-          labels: last7Labels,
-          datasets: [{ label: 'Expense (₹)', data: last7Values, borderWidth: 1 }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
-      });
-    }
-  </script>
 </body>
 </html>
